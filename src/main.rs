@@ -4,14 +4,11 @@ mod vec3;
 use ray::Ray;
 use vec3::{unit_vector, Vec3};
 
-const IMAGE_WIDTH: u16 = 256;
-const IMAGE_HEIGHT: u16 = 256;
-
 fn write_color(pixel_color: Vec3) {
-    let ir = (IMAGE_WIDTH as f32) * pixel_color.r();
-    let ig = (IMAGE_WIDTH as f32) * pixel_color.g();
-    let ib = (IMAGE_WIDTH as f32) * pixel_color.b();
-    println!("{} {} {}", ir.round(), ig.round(), ib.round());
+    let ir = 255.999 * pixel_color.r();
+    let ig = 255.999 * pixel_color.g();
+    let ib = 255.999 * pixel_color.b();
+    println!("{} {} {}", ir.floor(), ig.floor(), ib.floor());
 }
 
 fn ray_color(r: Ray) -> Vec3 {
@@ -21,16 +18,38 @@ fn ray_color(r: Ray) -> Vec3 {
 }
 
 fn main() {
-    println!("P3\n{} {}\n255", IMAGE_WIDTH, IMAGE_HEIGHT);
+    // Image
+    let aspect_ratio: f32 = 16.0 / 9.0;
 
-    for j in (0..IMAGE_HEIGHT).rev() {
+    let image_width: i32 = 400;
+    let image_height: i32 = ((image_width as f32) / aspect_ratio).round() as i32;
+
+    // Camera
+    let viewport_height = 2.0;
+    let viewport_width = viewport_height * aspect_ratio;
+    let focal_length = 1.0;
+
+    let origin = Vec3::new(0.0, 0.0, 0.0);
+    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
+    let vertical = Vec3::new(0.0, viewport_height, 0.0);
+    let lower_left_corner =
+        origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
+
+    println!("P3\n{} {}\n255", image_width, image_height);
+
+    for j in (0..image_height).rev() {
         eprintln!("\rScanlines remaining: {}", j);
-        for i in 0..IMAGE_WIDTH {
-            let r = (i as f32) / ((IMAGE_WIDTH - 1) as f32);
-            let g = (j as f32) / ((IMAGE_HEIGHT - 1) as f32);
-            let b: f32 = 0.25;
+        for i in 0..image_width {
+            let u = (i as f32) / ((image_width - 1) as f32);
+            let v = (j as f32) / ((image_height - 1) as f32);
 
-            write_color(Vec3::new(r, g, b))
+            let r = Ray::new(
+                origin,
+                lower_left_corner + u * horizontal + v * vertical - origin,
+            );
+            let pixel_color = ray_color(r);
+
+            write_color(pixel_color)
         }
     }
     eprintln!("\nDone");
