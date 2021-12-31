@@ -11,10 +11,25 @@ fn write_color(pixel_color: Vec3) {
     println!("{} {} {}", ir.floor(), ig.floor(), ib.floor());
 }
 
-fn ray_color(r: Ray) -> Vec3 {
-    let unit_direction = unit_vector(r.direction);
+fn ray_color(ray: Ray) -> Vec3 {
+    if hit_sphere(Vec3::new(0.0, 0.0, -1.0), 0.5, ray) {
+        return Vec3::new(1.0, 0.0, 0.0);
+    }
+    let unit_direction = unit_vector(ray.direction);
     let t = 0.5 * (unit_direction.y() + 1.0);
     (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+}
+
+// center + radius is the sphere
+// does ray hit it?
+// define quadratic and solve
+fn hit_sphere(center: Vec3, radius: f32, ray: Ray) -> bool {
+    let oc = ray.origin - center;
+    let a = ray.direction.dot(ray.direction);
+    let b = 2.0 * oc.dot(ray.direction);
+    let c = oc.dot(oc) - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant > 0.0
 }
 
 fn main() {
