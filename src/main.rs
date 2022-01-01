@@ -71,9 +71,10 @@ fn main() {
 }
 
 fn write_color(pixel_color: Vec3) {
-    let r = pixel_color.r();
-    let g = pixel_color.g();
-    let b = pixel_color.b();
+    // gamma-correct for gamma=2.0
+    let r = pixel_color.r().sqrt();
+    let g = pixel_color.g().sqrt();
+    let b = pixel_color.b().sqrt();
 
     println!(
         "{} {} {}",
@@ -97,10 +98,10 @@ fn ray_color(ray: Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
     if depth <= 0 {
         return Vec3::new(0.0, 0.0, 0.0);
     }
-    match world.hit(ray, 0.0, f32::MAX) {
-        Some(hit_record) => {
-            let target = hit_record.p + hit_record.normal + random_in_unit_sphere();
-            0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world, depth - 1)
+    match world.hit(ray, 0.001, f32::MAX) {
+        Some(rec) => {
+            let target = rec.p + rec.normal + random_in_unit_sphere();
+            0.5 * ray_color(Ray::new(rec.p, target - rec.p), world, depth - 1)
         }
         None => {
             let unit_direction = unit_vector(ray.direction);
