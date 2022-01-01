@@ -3,7 +3,9 @@ mod ray;
 mod sphere;
 mod vec3;
 
+use hittable::Hittable;
 use ray::Ray;
+use sphere::Sphere;
 use vec3::{unit_vector, Vec3};
 
 fn write_color(pixel_color: Vec3) {
@@ -13,31 +15,14 @@ fn write_color(pixel_color: Vec3) {
     println!("{} {} {}", ir.floor(), ig.floor(), ib.floor());
 }
 
-fn ray_color(ray: Ray) -> Vec3 {
-    let t = hit_sphere(Vec3::new(0.0, 0.0, -1.0), 0.5, ray);
-    if t > 0.0 {
-        let normal = unit_vector(ray.at(t) - Vec3::new(0.0, 0.0, -1.0));
-        return 0.5 * Vec3::new(normal.x() + 1.0, normal.y() + 1.0, normal.z() + 1.0);
-    }
-    let unit_direction = unit_vector(ray.direction);
-    let t = 0.5 * (unit_direction.y() + 1.0);
-    (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
-}
-
-// center + radius is the sphere
-// does ray hit it?
-// define quadratic and solve
-fn hit_sphere(center: Vec3, radius: f32, ray: Ray) -> f32 {
-    let oc = ray.origin - center;
-    let a = ray.direction.squared_length();
-    let half_b = oc.dot(ray.direction);
-    let c = oc.squared_length() - radius * radius;
-    let discriminant = half_b * half_b - a * c;
-
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (-half_b - discriminant.sqrt()) / a
+fn ray_color(ray: Ray, world: &dyn Hittable) -> Vec3 {
+    match world.hit(ray, 0.0, f32::MAX) {
+        Some(hit_record) => 0.5 * (hit_record.normal + Vec3::new(1.0, 1.0, 1.0)),
+        None => {
+            let unit_direction = unit_vector(ray.direction);
+            let t = 0.5 * (unit_direction.y() + 1.0);
+            (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+        }
     }
 }
 
@@ -47,6 +32,22 @@ fn main() {
 
     let image_width: i32 = 400;
     let image_height: i32 = ((image_width as f32) / aspect_ratio).round() as i32;
+
+    // World
+    let spheres = vec![
+        Sphere {
+            center: Vec3::new(0.0, 0.0, -1.0),
+            radius: 0.5,
+        },
+        Sphere {
+            center: Vec3::new(0.0, -100.5, -1.0),
+            radius: 100.0,
+        },
+    ];
+    let world: Vec<Box<dyn Hittable>> = spheres
+        .into_iter()
+        .map(|s| Box::new(s) as Box<dyn Hittable>)
+        .collect();
 
     // Camera
     let viewport_height = 2.0;
@@ -71,7 +72,7 @@ fn main() {
                 origin,
                 lower_left_corner + u * horizontal + v * vertical - origin,
             );
-            let pixel_color = ray_color(r);
+            let pixel_color = ray_color(r, &world);
 
             write_color(pixel_color)
         }
