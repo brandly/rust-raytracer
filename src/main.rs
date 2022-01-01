@@ -1,4 +1,6 @@
+mod hittable;
 mod ray;
+mod sphere;
 mod vec3;
 
 use ray::Ray;
