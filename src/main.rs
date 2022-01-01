@@ -6,6 +6,7 @@ mod vec3;
 
 use camera::Camera;
 use hittable::Hittable;
+use rand::prelude::*;
 use ray::Ray;
 use sphere::Sphere;
 use vec3::{unit_vector, Vec3};
@@ -13,9 +14,9 @@ use vec3::{unit_vector, Vec3};
 fn main() {
     // Image
     let aspect_ratio: f32 = 16.0 / 9.0;
-
     let image_width: i32 = 400;
     let image_height: i32 = ((image_width as f32) / aspect_ratio).round() as i32;
+    let samples_per_pixel = 100;
 
     // World
     let spheres = vec![
@@ -51,27 +52,46 @@ fn main() {
     };
 
     println!("P3\n{} {}\n255", image_width, image_height);
+    let mut rng = rand::thread_rng();
 
     for j in (0..image_height).rev() {
         eprintln!("\rScanlines remaining: {}", j);
         for i in 0..image_width {
-            let u = (i as f32) / ((image_width - 1) as f32);
-            let v = (j as f32) / ((image_height - 1) as f32);
+            let mut pixel_color = Vec3::new(0.0, 0.0, 0.0);
+            for s in 0..samples_per_pixel {
+                let u = (i as f32 + rng.gen::<f32>()) / ((image_width - 1) as f32);
+                let v = (j as f32 + rng.gen::<f32>()) / ((image_height - 1) as f32);
 
-            let r = camera.get_ray(u, v);
-            let pixel_color = ray_color(r, &world);
-
-            write_color(pixel_color)
+                let r = camera.get_ray(u, v);
+                pixel_color += ray_color(r, &world);
+            }
+            write_color(pixel_color / samples_per_pixel as f32);
         }
     }
     eprintln!("\nDone");
 }
 
 fn write_color(pixel_color: Vec3) {
-    let ir = 255.999 * pixel_color.r();
-    let ig = 255.999 * pixel_color.g();
-    let ib = 255.999 * pixel_color.b();
-    println!("{} {} {}", ir.floor(), ig.floor(), ib.floor());
+    let r = pixel_color.r();
+    let g = pixel_color.g();
+    let b = pixel_color.b();
+
+    println!(
+        "{} {} {}",
+        (256.0 * clamp(r, 0.0, 0.999)).floor(),
+        (256.0 * clamp(g, 0.0, 0.999)).floor(),
+        (256.0 * clamp(b, 0.0, 0.999)).floor()
+    );
+}
+
+fn clamp(x: f32, min: f32, max: f32) -> f32 {
+    if x < min {
+        return min;
+    }
+    if x > max {
+        return max;
+    }
+    return x;
 }
 
 fn ray_color(ray: Ray, world: &dyn Hittable) -> Vec3 {
