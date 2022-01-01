@@ -8,24 +8,6 @@ use ray::Ray;
 use sphere::Sphere;
 use vec3::{unit_vector, Vec3};
 
-fn write_color(pixel_color: Vec3) {
-    let ir = 255.999 * pixel_color.r();
-    let ig = 255.999 * pixel_color.g();
-    let ib = 255.999 * pixel_color.b();
-    println!("{} {} {}", ir.floor(), ig.floor(), ib.floor());
-}
-
-fn ray_color(ray: Ray, world: &dyn Hittable) -> Vec3 {
-    match world.hit(ray, 0.0, f32::MAX) {
-        Some(hit_record) => 0.5 * (hit_record.normal + Vec3::new(1.0, 1.0, 1.0)),
-        None => {
-            let unit_direction = unit_vector(ray.direction);
-            let t = 0.5 * (unit_direction.y() + 1.0);
-            (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
-        }
-    }
-}
-
 fn main() {
     // Image
     let aspect_ratio: f32 = 16.0 / 9.0;
@@ -78,4 +60,22 @@ fn main() {
         }
     }
     eprintln!("\nDone");
+}
+
+fn write_color(pixel_color: Vec3) {
+    let ir = 255.999 * pixel_color.r();
+    let ig = 255.999 * pixel_color.g();
+    let ib = 255.999 * pixel_color.b();
+    println!("{} {} {}", ir.floor(), ig.floor(), ib.floor());
+}
+
+fn ray_color(ray: Ray, world: &dyn Hittable) -> Vec3 {
+    match world.hit(ray, 0.0, f32::MAX) {
+        Some(hit_record) => 0.5 * (hit_record.normal + Vec3::new(1.0, 1.0, 1.0)),
+        None => {
+            let unit_direction = unit_vector(ray.direction);
+            let t = 0.5 * (unit_direction.y() + 1.0);
+            (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+        }
+    }
 }
