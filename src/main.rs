@@ -16,6 +16,7 @@ fn main() {
     let image_width: i32 = 400;
     let image_height: i32 = ((image_width as f32) / aspect_ratio).round() as i32;
     let samples_per_pixel = 100;
+    let max_depth = 50;
 
     // World
     let spheres = vec![
@@ -61,7 +62,7 @@ fn main() {
                 let v = (j as f32 + rand::random::<f32>()) / ((image_height - 1) as f32);
 
                 let r = camera.get_ray(u, v);
-                pixel_color += ray_color(r, &world);
+                pixel_color += ray_color(r, &world, max_depth);
             }
             write_color(pixel_color / samples_per_pixel as f32);
         }
@@ -92,11 +93,14 @@ fn clamp(x: f32, min: f32, max: f32) -> f32 {
     return x;
 }
 
-fn ray_color(ray: Ray, world: &dyn Hittable) -> Vec3 {
+fn ray_color(ray: Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
+    if depth <= 0 {
+        return Vec3::new(0.0, 0.0, 0.0);
+    }
     match world.hit(ray, 0.0, f32::MAX) {
         Some(hit_record) => {
             let target = hit_record.p + hit_record.normal + random_in_unit_sphere();
-            0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world)
+            0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world, depth - 1)
         }
         None => {
             let unit_direction = unit_vector(ray.direction);
