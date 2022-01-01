@@ -222,6 +222,18 @@ pub fn unit_vector(v: Vec3) -> Vec3 {
     v / v.length()
 }
 
+pub fn random_vector(min: f32, max: f32) -> Vec3 {
+    Vec3::new(
+        random_double(min, max),
+        random_double(min, max),
+        random_double(min, max),
+    )
+}
+
+fn random_double(min: f32, max: f32) -> f32 {
+    min + (max - min) * rand::random::<f32>()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

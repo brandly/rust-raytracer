@@ -8,7 +8,7 @@ use camera::Camera;
 use hittable::Hittable;
 use ray::Ray;
 use sphere::Sphere;
-use vec3::{unit_vector, Vec3};
+use vec3::{random_vector, unit_vector, Vec3};
 
 fn main() {
     // Image
@@ -94,11 +94,23 @@ fn clamp(x: f32, min: f32, max: f32) -> f32 {
 
 fn ray_color(ray: Ray, world: &dyn Hittable) -> Vec3 {
     match world.hit(ray, 0.0, f32::MAX) {
-        Some(hit_record) => 0.5 * (hit_record.normal + Vec3::new(1.0, 1.0, 1.0)),
+        Some(hit_record) => {
+            let target = hit_record.p + hit_record.normal + random_in_unit_sphere();
+            0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world)
+        }
         None => {
             let unit_direction = unit_vector(ray.direction);
             let t = 0.5 * (unit_direction.y() + 1.0);
             (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+        }
+    }
+}
+
+fn random_in_unit_sphere() -> Vec3 {
+    loop {
+        let p = random_vector(-1.0, 1.0);
+        if p.squared_length() < 1.0 {
+            return p;
         }
     }
 }
