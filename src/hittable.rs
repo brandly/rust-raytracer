@@ -17,8 +17,8 @@ impl Hittable for Vec<Box<dyn Hittable>> {
     fn hit(&self, ray: Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let mut hit: Option<HitRecord> = None;
 
-        for hitable in self {
-            if let Some(candidateHit) = hitable.hit(ray, t_min, t_max) {
+        for hittable in self {
+            if let Some(candidateHit) = hittable.hit(ray, t_min, t_max) {
                 match hit {
                     None => hit = Some(candidateHit),
                     Some(prev) => {
