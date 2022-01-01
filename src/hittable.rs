@@ -18,12 +18,12 @@ impl Hittable for Vec<Box<dyn Hittable>> {
         let mut hit: Option<HitRecord> = None;
 
         for hittable in self {
-            if let Some(candidateHit) = hittable.hit(ray, t_min, t_max) {
+            if let Some(candidate_hit) = hittable.hit(ray, t_min, t_max) {
                 match hit {
-                    None => hit = Some(candidateHit),
+                    None => hit = Some(candidate_hit),
                     Some(prev) => {
-                        if candidateHit.t < prev.t {
-                            hit = Some(candidateHit);
+                        if candidate_hit.t < prev.t {
+                            hit = Some(candidate_hit);
                         }
                     }
                 }

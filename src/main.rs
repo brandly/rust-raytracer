@@ -6,7 +6,6 @@ mod vec3;
 
 use camera::Camera;
 use hittable::Hittable;
-use rand::prelude::*;
 use ray::Ray;
 use sphere::Sphere;
 use vec3::{unit_vector, Vec3};
@@ -52,15 +51,14 @@ fn main() {
     };
 
     println!("P3\n{} {}\n255", image_width, image_height);
-    let mut rng = rand::thread_rng();
 
     for j in (0..image_height).rev() {
         eprintln!("\rScanlines remaining: {}", j);
         for i in 0..image_width {
             let mut pixel_color = Vec3::new(0.0, 0.0, 0.0);
-            for s in 0..samples_per_pixel {
-                let u = (i as f32 + rng.gen::<f32>()) / ((image_width - 1) as f32);
-                let v = (j as f32 + rng.gen::<f32>()) / ((image_height - 1) as f32);
+            for _s in 0..samples_per_pixel {
+                let u = (i as f32 + rand::random::<f32>()) / ((image_width - 1) as f32);
+                let v = (j as f32 + rand::random::<f32>()) / ((image_height - 1) as f32);
 
                 let r = camera.get_ray(u, v);
                 pixel_color += ray_color(r, &world);
