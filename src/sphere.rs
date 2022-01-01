@@ -30,10 +30,17 @@ impl Hittable for Sphere {
         }
 
         let p = ray.at(root);
+        let outward_normal = (p - self.center) / self.radius;
+        let front_face = ray.direction.dot(outward_normal) < 0.;
         Some(HitRecord {
             p,
-            normal: (p - self.center) / self.radius,
+            normal: if front_face {
+                outward_normal
+            } else {
+                -outward_normal
+            },
             t: root,
+            front_face,
         })
     }
 }
