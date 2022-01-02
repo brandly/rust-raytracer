@@ -56,6 +56,11 @@ impl Vec3 {
             ],
         }
     }
+
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        self.e[0].abs() < s || self.e[1].abs() < s || self.e[2].abs() < s
+    }
 }
 
 impl Add for Vec3 {
@@ -232,6 +237,28 @@ pub fn random_vector(min: f32, max: f32) -> Vec3 {
 
 fn random_double(min: f32, max: f32) -> f32 {
     min + (max - min) * rand::random::<f32>()
+}
+
+pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+    let in_unit_sphere = random_in_unit_sphere();
+    if in_unit_sphere.dot(normal) > 0.0 {
+        in_unit_sphere
+    } else {
+        -in_unit_sphere
+    }
+}
+
+pub fn random_unit_vector() -> Vec3 {
+    unit_vector(random_in_unit_sphere())
+}
+
+fn random_in_unit_sphere() -> Vec3 {
+    loop {
+        let p = random_vector(-1.0, 1.0);
+        if p.squared_length() < 1.0 {
+            return p;
+        }
+    }
 }
 
 #[cfg(test)]

@@ -1,10 +1,12 @@
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
-#[derive(Clone, Copy, Debug)]
-pub struct HitRecord {
+#[derive(Clone, Copy)]
+pub struct HitRecord<'a> {
     pub p: Vec3,
     pub normal: Vec3,
+    pub material: &'a dyn Material,
     pub t: f32,
     pub front_face: bool,
 }

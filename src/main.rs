@@ -1,14 +1,16 @@
 mod camera;
 mod hittable;
+mod material;
 mod ray;
 mod sphere;
 mod vec3;
 
 use camera::Camera;
 use hittable::Hittable;
+use material::Lambertian;
 use ray::Ray;
 use sphere::Sphere;
-use vec3::{random_vector, unit_vector, Vec3};
+use vec3::{random_in_hemisphere, unit_vector, Vec3};
 
 fn main() {
     // Image
@@ -23,10 +25,16 @@ fn main() {
         Sphere {
             center: Vec3::new(0.0, 0.0, -1.0),
             radius: 0.5,
+            material: Box::new(Lambertian {
+                albedo: Vec3::new(1.0, 0.0, 0.0),
+            }),
         },
         Sphere {
             center: Vec3::new(0.0, -100.5, -1.0),
             radius: 100.0,
+            material: Box::new(Lambertian {
+                albedo: Vec3::new(0.0, 1.0, 0.0),
+            }),
         },
     ];
     let world: Vec<Box<dyn Hittable>> = spheres
@@ -107,28 +115,6 @@ fn ray_color(ray: Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
             let unit_direction = unit_vector(ray.direction);
             let t = 0.5 * (unit_direction.y() + 1.0);
             (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
-        }
-    }
-}
-
-fn random_in_hemisphere(normal: Vec3) -> Vec3 {
-    let in_unit_sphere = random_in_unit_sphere();
-    if in_unit_sphere.dot(normal) > 0.0 {
-        in_unit_sphere
-    } else {
-        -in_unit_sphere
-    }
-}
-
-fn random_unit_vector() -> Vec3 {
-    unit_vector(random_in_unit_sphere())
-}
-
-fn random_in_unit_sphere() -> Vec3 {
-    loop {
-        let p = random_vector(-1.0, 1.0);
-        if p.squared_length() < 1.0 {
-            return p;
         }
     }
 }
