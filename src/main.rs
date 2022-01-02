@@ -100,7 +100,7 @@ fn ray_color(ray: Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
     }
     match world.hit(ray, 0.001, f32::MAX) {
         Some(rec) => {
-            let target = rec.p + rec.normal + random_unit_vector();
+            let target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
             0.5 * ray_color(Ray::new(rec.p, target - rec.p), world, depth - 1)
         }
         None => {
@@ -108,6 +108,15 @@ fn ray_color(ray: Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
             let t = 0.5 * (unit_direction.y() + 1.0);
             (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
         }
+    }
+}
+
+fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+    let in_unit_sphere = random_in_unit_sphere();
+    if in_unit_sphere.dot(normal) > 0.0 {
+        in_unit_sphere
+    } else {
+        -in_unit_sphere
     }
 }
 
