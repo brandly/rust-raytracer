@@ -7,10 +7,10 @@ mod vec3;
 
 use camera::Camera;
 use hittable::Hittable;
-use material::Lambertian;
+use material::{Lambertian, Metal};
 use ray::Ray;
 use sphere::Sphere;
-use vec3::{random_in_hemisphere, unit_vector, Vec3};
+use vec3::{unit_vector, Vec3};
 
 fn main() {
     // Image
@@ -21,20 +21,41 @@ fn main() {
     let max_depth = 50;
 
     // World
+    let material_ground = Box::new(Lambertian {
+        albedo: Vec3::new(0.8, 0.8, 0.0),
+    });
+    let material_center = Box::new(Lambertian {
+        albedo: Vec3::new(0.7, 0.3, 0.3),
+    });
+    let material_left = Box::new(Metal {
+        albedo: Vec3::new(0.8, 0.8, 0.8),
+        fuzz: 0.3,
+    });
+    let material_right = Box::new(Metal {
+        albedo: Vec3::new(0.8, 0.6, 0.2),
+        fuzz: 1.0,
+    });
+
     let spheres = vec![
-        Sphere {
-            center: Vec3::new(0.0, 0.0, -1.0),
-            radius: 0.5,
-            material: Box::new(Lambertian {
-                albedo: Vec3::new(1.0, 0.0, 0.0),
-            }),
-        },
         Sphere {
             center: Vec3::new(0.0, -100.5, -1.0),
             radius: 100.0,
-            material: Box::new(Lambertian {
-                albedo: Vec3::new(0.0, 1.0, 0.0),
-            }),
+            material: material_ground,
+        },
+        Sphere {
+            center: Vec3::new(0.0, 0.0, -1.0),
+            radius: 0.5,
+            material: material_center,
+        },
+        Sphere {
+            center: Vec3::new(-1.0, 0.0, -1.0),
+            radius: 0.5,
+            material: material_left,
+        },
+        Sphere {
+            center: Vec3::new(1.0, 0.0, -1.0),
+            radius: 0.5,
+            material: material_right,
         },
     ];
     let world: Vec<Box<dyn Hittable>> = spheres
@@ -107,10 +128,10 @@ fn ray_color(ray: Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
         return Vec3::new(0.0, 0.0, 0.0);
     }
     match world.hit(ray, 0.001, f32::MAX) {
-        Some(rec) => {
-            let target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
-            0.5 * ray_color(Ray::new(rec.p, target - rec.p), world, depth - 1)
-        }
+        Some(rec) => match rec.material.scatter(ray, rec) {
+            Some(scatter) => scatter.color * ray_color(scatter.ray, world, depth - 1),
+            None => Vec3::new(0.0, 0.0, 0.0),
+        },
         None => {
             let unit_direction = unit_vector(ray.direction);
             let t = 0.5 * (unit_direction.y() + 1.0);
